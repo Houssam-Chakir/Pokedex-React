@@ -1,3 +1,6 @@
+export const baseURL = `https://pokeapi.co/api/v2/`
+
+
 export const first151Pokemon = [
   "Bulbasaur", "Ivysaur", "Venusaur", "Charmander", "Charmeleon", "Charizard", "Squirtle", "Wartortle", "Blastoise",
   "Caterpie", "Metapod", "Butterfree", "Weedle", "Kakuna", "Beedrill", "Pidgey", "Pidgeotto", "Pidgeot",
