@@ -7,12 +7,50 @@ export default function PokeCard(props) {
   const { selectedPokemon } = props;
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [skill, setSkill] = useState(null);
+  const [loadingSkill, setLoadingSkill] = useState(false);
+  async function fetchMoveData(move, moveUrl) {
+    console.log("loadingSkill || !localStorage || moveUrl");
+    if (loadingSkill || !localStorage || !moveUrl) {
+      return;
+    }
+    //Check if move is in cache
+    let cache = {};
+    if (localStorage.getItem("pokemon-moves")) {
+      cache = JSON.parse(localStorage.getItem("pokemon-moves"));
+    }
+    console.log("past saving data to cache step");
+    if (move in cache) {
+      setSkill(cache[move]);
+      console.log('cache[move]: ', cache[move]);
+      console.log("Found move in cache");
+      return;
+    }
 
-  // const imgList = Object.keys(sprites || {}).filter(val => {
-  //   if (!sprites[val]) { return flase }
-  //   if (['version','other'].includes(val)) {return false}
-  //   return true
-  // })
+    try {
+      setLoadingSkill(true);
+      const res = await fetch(moveUrl);
+      const moveData = await res.json();
+      console.log("moveData: ", moveData);
+
+      const description = moveData?.flavor_text_entries.filter((val) => {
+        return (val.version_group.name === "firered-leafgreen");
+      })[0]?.flavor_text;
+
+      const skillData = {
+        name: move,
+        description,
+      };
+      setSkill(skillData);
+
+      cache[move] = skillData;
+      localStorage.setItem("pokemon-moves", JSON.stringify(cache));
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoadingSkill(false);
+    }
+  }
 
   useEffect(() => {
     if (data) {
@@ -80,11 +118,23 @@ export default function PokeCard(props) {
 
   return (
     <div className='poke-card'>
-      <Modal handleClodeModal={() => {}}>
-        <div>
-          <h6>{data.name}</h6>
-        </div>
-      </Modal>
+      {skill && (
+        <Modal
+          handleCloseModal={() => {
+            setSkill(null);
+            console.log('skill set to null');
+          }}
+        >
+          <div>
+            <h6>Name</h6>
+            <h2>{skill.name}</h2>
+          </div>
+          <div>
+            <h6>description</h6>
+            <p>{skill.description}</p>
+          </div>
+        </Modal>
+      )}
       <div>
         <h4>#{getFullPokedexNumber(selectedPokemon)}</h4>
         <h2>{data.name}</h2>
@@ -97,7 +147,6 @@ export default function PokeCard(props) {
       <img className='default-img' src={`/public/pokemon/${getFullPokedexNumber(selectedPokemon)}.png`} alt={`${data.name}-large-img`} />
       <div className='img-container'>
         {Object.values(data.sprites).map((imgUrl, imgIndex) => {
-          console.log(typeof imgUrl);
           if (typeof imgUrl !== "string") {
             return;
           }
@@ -109,22 +158,27 @@ export default function PokeCard(props) {
         {data.stats.map((statObj, statIndex) => {
           const { stat, base_stat } = statObj;
           return (
-            <div key={statIndex}
-                 className="stat-item">
-              <p>{stat?.name.replaceAll('-', ' ')}</p>
+            <div key={statIndex} className='stat-item'>
+              <p>{stat?.name.replaceAll("-", " ")}</p>
               <h4>{base_stat}</h4>
             </div>
-          )
+          );
         })}
       </div>
       <h3>Moves</h3>
-      <div className="pokemon-move-grid">
+      <div className='pokemon-move-grid'>
         {data.moves.map((moveObj, moveIndex) => {
           return (
-            <button className="button-card pokemon-move" key={moveIndex} onClick={() => {}}>
-              <p>{moveObj?.move?.name.replaceAll('-', ' ')}</p>
+            <button
+              className='button-card pokemon-move'
+              key={moveIndex}
+              onClick={() => {
+                setSkill(fetchMoveData(moveObj?.move?.name, moveObj?.move?.url));
+              }}
+            >
+              <p>{moveObj?.move?.name.replaceAll("-", " ")}</p>
             </button>
-          )
+          );
         })}
       </div>
     </div>
