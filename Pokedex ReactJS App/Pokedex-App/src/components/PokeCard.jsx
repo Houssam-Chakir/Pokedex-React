@@ -10,7 +10,6 @@ export default function PokeCard(props) {
   const [skill, setSkill] = useState(null);
   const [loadingSkill, setLoadingSkill] = useState(false);
   async function fetchMoveData(move, moveUrl) {
-    console.log("loadingSkill || !localStorage || moveUrl");
     if (loadingSkill || !localStorage || !moveUrl) {
       return;
     }
@@ -19,7 +18,7 @@ export default function PokeCard(props) {
     if (localStorage.getItem("pokemon-moves")) {
       cache = JSON.parse(localStorage.getItem("pokemon-moves"));
     }
-    console.log("past saving data to cache step");
+
     if (move in cache) {
       setSkill(cache[move]);
       console.log('cache[move]: ', cache[move]);
@@ -34,13 +33,14 @@ export default function PokeCard(props) {
       console.log("moveData: ", moveData);
 
       const description = moveData?.flavor_text_entries.filter((val) => {
-        return (val.version_group.name === "firered-leafgreen");
+        return (val.version_group.name = "firered-leafgreen");
       })[0]?.flavor_text;
 
       const skillData = {
         name: move,
         description,
       };
+      console.log('skillData: ', skillData);
       setSkill(skillData);
 
       cache[move] = skillData;
@@ -53,15 +53,8 @@ export default function PokeCard(props) {
   }
 
   useEffect(() => {
-    if (data) {
-      const { name: pokeName, height, abilities, stats, types, moves, sprites } = data;
-      console.log("data", data);
-    }
-  }, [data]);
-
-  useEffect(() => {
     console.log("top");
-    if (loading || !localStorage || data) {
+    if (loading || !localStorage) {
       return;
     }
 
@@ -173,7 +166,7 @@ export default function PokeCard(props) {
               className='button-card pokemon-move'
               key={moveIndex}
               onClick={() => {
-                setSkill(fetchMoveData(moveObj?.move?.name, moveObj?.move?.url));
+                fetchMoveData(moveObj?.move?.name, moveObj?.move?.url);
               }}
             >
               <p>{moveObj?.move?.name.replaceAll("-", " ")}</p>
